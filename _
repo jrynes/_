@@ -1,44 +1,15 @@
-// General function to populate any table
-function populateTable(tableId, data, columnNames) {
-  var tableBody = document.getElementById(tableId).getElementsByTagName("tbody")[0];
-  tableBody.innerHTML = ""; // Clear existing rows
+    var startDate = new Date(document.getElementById('start-date').value);
+    var endDate = new Date(document.getElementById('end-date').value);
 
-  // Populate table with data
-  data.forEach(function(record) {
-    var row = tableBody.insertRow(); // Create a new row
-    
-    // Loop through each column name and insert a cell
-    columnNames.forEach(function(col, index) {
-      var cell = row.insertCell(index); // Create a new cell
-      cell.textContent = record[col];  // Set cell's text content to the corresponding value
-    });
-  });
-}
+    // Check if the end date is before the start date
+    if (endDate < startDate) {
+        alert("The end date must be on or after the start date.");
+        return; // Stop the rest of the code from running
+    }
 
-// General function to filter data based on date range
-function filterData(data, startDate, endDate, dateField) {
-  return data.filter(function(d) {
-    var date = new Date(d[dateField]); // Use the provided date field for filtering
-    return date >= startDate && date <= endDate;
-  });
-}
-
-// Example Usage for Table 1
-function populateTable1(data) {
-  populateTable("data-table", data, ["user_input", "input_date", "event_count"]);
-}
-
-// Example Usage for Table 2
-function populateTable2(data) {
-  populateTable("data-table2", data, ["chatbot_response", "input_date", "event_count"]);
-}
-
-// Example Usage for Filtering Table 1
-function filterDataTable1(startDate, endDate) {
-  return filterData(tableData, startDate, endDate, "input_date");
-}
-
-// Example Usage for Filtering Table 2
-function filterDataTable2(startDate, endDate) {
-  return filterData(table2Data, startDate, endDate, "input_date");
-}
+    // Check if the end date is in the future
+    var currentDate = new Date();
+    if (endDate > currentDate) {
+        alert("The end date cannot be in the future.");
+        return; // Stop the rest of the code from running
+    }
