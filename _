@@ -1,15 +1,126 @@
-    var startDate = new Date(document.getElementById('start-date').value);
-    var endDate = new Date(document.getElementById('end-date').value);
+  it('should call search with correct sort parameters', () => {
+    const sortState: Sort = { active: 'customerNumber', direction: 'asc' };
+    
+    // Spy on the search method
+    searchSpy = spyOn(component, 'search');
 
-    // Check if the end date is before the start date
-    if (endDate < startDate) {
-        alert("The end date must be on or after the start date.");
-        return; // Stop the rest of the code from running
-    }
+    // Trigger the announceSortChanges method
+    component.announceSortChange(sortState);
 
-    // Check if the end date is in the future
-    var currentDate = new Date();
-    if (endDate > currentDate) {
-        alert("The end date cannot be in the future.");
-        return; // Stop the rest of the code from running
-    }
+    // Check if the sortValue has been set correctly
+    expect(component.sortValue).toBe('dnCustomerNo,ASC');
+
+    // Check if search was called with the correct sort parameter
+    expect(searchSpy).toHaveBeenCalledWith({
+      ...component.payload,
+      sort: 'dnCustomerNo,ASC',
+    });
+  });
+
+  it('should modify payload based on form type (customer)', () => {
+    // Set form values
+    component.form.get('type')?.setValue('customer');
+    component.form.get('customerNumber')?.setValue('12345');
+    component.form.get('applicationNumber')?.setValue(null);
+
+    // Spy on the search method
+    searchSpy = spyOn(component, 'search');
+
+    // Trigger the search method
+    component.search(component.payload);
+
+    // Assert that customerNumber is set and applicationNumber is removed
+    expect(component.payload.customerNumber).toEqual(['12345']);
+    expect(component.payload.applicationNumber).toBeUndefined();
+    expect(searchSpy).toHaveBeenCalled();
+  });
+
+  it('should modify payload based on form type (application)', () => {
+    // Set form values
+    component.form.get('type')?.setValue('application');
+    component.form.get('applicationNumber')?.setValue('67890');
+    component.form.get('customerNumber')?.setValue(null);
+
+    // Spy on the search method
+    searchSpy = spyOn(component, 'search');
+
+    // Trigger the search method
+    component.search(component.payload);
+
+    // Assert that applicationNumber is set and customerNumber is removed
+    expect(component.payload.applicationNumber).toEqual(['67890']);
+    expect(component.payload.customerNumber).toBeUndefined();
+    expect(searchSpy).toHaveBeenCalled();
+  });
+
+  it('should handle the HTTP response correctly', () => {
+    const mockResponse = {
+      pageTotalQuantity: 100,
+      pageNumber: 1,
+      grandTotalNumberOfCustomerNumbers: 50,
+      elementTotalQuantity: 50,
+      grandTotalNumberOfDocuments: 100,
+      grandTotalNumberOfPages: 10,
+      notificationsRecordDTOs: [{ /* mock data */ }],
+    };
+
+    // Spy on HTTP Client
+    spyOn(component['httpClient'], 'post').and.returnValue(of(mockResponse));
+
+    // Call the search method
+    component.search(component.payload);
+
+    // Check that the component's properties are updated
+    expect(component.totalPage).toBe(mockResponse.pageTotalQuantity);
+    expect(component.pageNumber).toBe(mockResponse.pageNumber);
+    expect(component.totalCustomers).toBe(mockResponse.grandTotalNumberOfCustomerNumbers);
+    expect(component.totalApplications).toBe(mockResponse.elementTotalQuantity);
+    expect(component.totalDocs).toBe(mockResponse.grandTotalNumberOfDocuments);
+    expect(component.totalPages).toBe(mockResponse.grandTotalNumberOfPages);
+    expect(component.count).toBe(mockResponse.elementTotalQuantity);
+    expect(component.dataSource.data).toEqual(mockResponse.notificationsRecordDTOs);
+
+    // Check if searchInProgress was set to false
+    expect(component.searchInProgress).toBeFalse();
+  });
+
+  it('should export data correctly', () => {
+    const mockData = [{ /* mock data */ }];
+    const fileName = 'exportedData.csv';
+
+    // Spy on the necessary services
+    fetchAllDataSpy = spyOn(component['dataExportService'], 'fetchAllDataForExport').and.returnValue(of(mockData));
+    downloadPaginatedTableSpy = spyOn(component['exportsvService'], 'downloadPaginatedTable');
+
+    // Trigger the handleFullExport method
+    component.handleFullExport(fileName);
+
+    // Check if fetchAllDataForExport was called
+    expect(fetchAllDataSpy).toHaveBeenCalled();
+
+    // Check if downloadPaginatedTable was called with the correct arguments
+    expect(downloadPaginatedTableSpy).toHaveBeenCalledWith(mockData, fileName, component.tableHeaders);
+  });
+
+  it('should format the date correctly', () => {
+    const date = new Date('2024-12-01T00:00:00');
+    const formattedDate = component.formatDate(date);
+
+    // Check if the date is formatted correctly
+    expect(formattedDate).toBe('2024-12-01');
+  });
+
+  it('should update payload with start and end dates on date change', () => {
+    const event = { startDate: new Date('2024-12-01'), endDate: new Date('2024-12-31') };
+
+    // Trigger onDateChange
+    component.onDateChange(event);
+
+    // Check if the payload is updated correctly
+    expect(component.payload.startDate).toBe(component.startDate);
+    expect(component.payload.endDate).toBe(component.endDate);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
