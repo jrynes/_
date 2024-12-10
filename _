@@ -1,1 +1,21 @@
-
+      <!-- Responsive Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <!-- Table Headers -->
+              <th *ngFor="let header of tableHeaders" class="text-center">
+                {{ header.friendly }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table Rows -->
+            <tr *ngFor="let row of dataSource.data">
+              <td *ngFor="let header of tableHeaders" class="text-center">
+                {{ row[header.key] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
