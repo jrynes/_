@@ -1,21 +1,31 @@
-      <!-- Responsive Table -->
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <!-- Table Headers -->
-              <th *ngFor="let header of tableHeaders" class="text-center">
-                {{ header.friendly }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Table Rows -->
-            <tr *ngFor="let row of dataSource.data">
-              <td *ngFor="let header of tableHeaders" class="text-center">
-                {{ row[header.key] }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+/* Table Styling for this Component */
+table {
+  border-collapse: collapse; /* Remove gaps between borders */
+  width: 100%; /* Ensure full-width table */
+}
+
+/* Header Row Background */
+thead th {
+  background-color: #e0e0e0; /* Light grey background */
+  color: #333; /* Dark text color for contrast */
+  font-weight: bold;
+  text-align: center;
+  padding: 12px;
+  border-bottom: 2px solid #d0d0d0; /* Slightly darker divider for header */
+}
+
+/* Remove Vertical Cell Borders */
+tbody td {
+  border: none; /* Remove vertical dividers */
+  text-align: center;
+  padding: 12px;
+}
+
+/* Add Horizontal Dividers */
+tbody tr {
+  border-bottom: 1px solid #d0d0d0; /* Horizontal dividers only */
+}
+
+tbody tr:last-child {
+  border-bottom: none; /* Remove divider for the last row */
+}
