@@ -1,1 +1,18 @@
+// On button click
+async onUserAction() {
+    const token = await this.oktaAuth.tokenManager.get('accessToken');
+    const bufferTime = 300; // 5 minutes buffer
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+
+    if (token && token.expiresAt - currentTime < bufferTime) {
+        try {
+            // Refresh the token using the refresh token
+            const renewedTokens = await this.oktaAuth.token.renew('accessToken');
+            this.oktaAuth.tokenManager.setTokens(renewedTokens);
+            console.log('Token renewed successfully');
+        } catch (err) {
+            console.error('Token renewal failed', err);
+        }
+    }
+}
 
