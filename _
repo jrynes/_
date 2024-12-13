@@ -1,1 +1,9 @@
 
+    ' Skip rows where the Form Step column starts with <a href=
+    If Left(rawSelection, 8) = "<a href=" Then
+        Debug.Print "Skipping row " & i & " due to <a href= condition."
+        ws.Rows(i).Delete
+        i = i - 1 ' Adjust the row counter after deletion
+        lastRow = lastRow - 1 ' Update the total row count
+        GoTo SkipRow
+    End If
