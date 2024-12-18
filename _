@@ -1,5 +1,14 @@
 npm install --save-dev eslint @angular-eslint/builder @angular-eslint/eslint-plugin @angular-eslint/eslint-plugin-template @angular-eslint/schematics @typescript-eslint/parser @typescript-eslint/eslint-plugin
 
+npm install --save-dev \
+  eslint@^8.57.0 \
+  @angular-eslint/builder@^18.0.0 \
+  @angular-eslint/eslint-plugin@^18.0.0 \
+  @angular-eslint/eslint-plugin-template@^18.0.0 \
+  @angular-eslint/schematics@^18.0.0 \
+  @typescript-eslint/parser@^8.15.0 \
+  @typescript-eslint/eslint-plugin@^8.15.0
+
 ng add @angular-eslint/schematics
 
 "lint": {
