@@ -1,9 +1,73 @@
+npm install --save-dev eslint @angular-eslint/builder @angular-eslint/eslint-plugin @angular-eslint/eslint-plugin-template @angular-eslint/schematics @typescript-eslint/parser @typescript-eslint/eslint-plugin
 
-    ' Skip rows where the Form Step column starts with <a href=
-    If Left(rawSelection, 8) = "<a href=" Then
-        Debug.Print "Skipping row " & i & " due to <a href= condition."
-        ws.Rows(i).Delete
-        i = i - 1 ' Adjust the row counter after deletion
-        lastRow = lastRow - 1 ' Update the total row count
-        GoTo SkipRow
-    End If
+ng add @angular-eslint/schematics
+
+"lint": {
+  "builder": "@angular-eslint/builder:lint",
+  "options": {
+    "lintFilePatterns": [
+      "src/**/*.ts",
+      "src/**/*.html"
+    ]
+  }
+}
+
+npm install --save-dev @angular-eslint/eslint-plugin-template
+
+{
+  "overrides": [
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
+      "rules": {
+        // Customize rules as needed
+        "max-len": ["error", { "code": 140 }],
+        "no-inline-styles": "warn",
+        "no-autofocus": "warn"
+      }
+    }
+  ]
+}
+
+npm install --save-dev stylelint stylelint-config-standard
+
+npm install --save-dev stylelint-scss
+
+module.exports = {
+  extends: [
+    "stylelint-config-standard",
+    "stylelint-config-standard-scss" // For SCSS-specific rules
+  ],
+  rules: {
+    "color-no-invalid-hex": true, // Prevent invalid hex codes
+    "max-nesting-depth": 3,      // Limit nesting depth
+    "no-duplicate-selectors": true,
+    "selector-max-id": 0,        // Avoid ID selectors
+    "string-quotes": "single",   // Enforce single quotes
+    "scss/at-rule-no-unknown": true,
+    "scss/dollar-variable-pattern": "^foo" // Example SCSS-specific rule
+  },
+};
+
+
+
+npm install --save-dev lint-staged
+
+npx husky add .husky/pre-commit "npx lint-staged"
+
+
+Update package.json: Add a lint-staged configuration in package.json for each file type:
+
+json
+Copy code
+{
+  "lint-staged": {
+    "src/**/*.{css,scss}": "stylelint --fix",
+    "src/**/*.html": "eslint --fix",
+    "src/**/*.{ts,js}": "eslint --fix"
+  }
+}
+
+
+
+
