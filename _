@@ -9,6 +9,9 @@ npm install --save-dev \
   @typescript-eslint/parser@^8.15.0 \
   @typescript-eslint/eslint-plugin@^8.15.0
 
+npm install --save-dev eslint@^8.57.0 @angular-eslint/builder@^14.0.0 @angular-eslint/eslint-plugin@^14.0.0 @angular-eslint/eslint-plugin-template@^14.0.0 @angular-eslint/schematics@^14.0.0 @typescript-eslint/parser@^5.0.0 @typescript-eslint/eslint-plugin@^5.0.0
+
+
 ng add @angular-eslint/schematics
 
 "lint": {
