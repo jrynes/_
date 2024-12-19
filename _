@@ -1,106 +1,64 @@
-npm install --save-dev eslint @angular-eslint/builder @angular-eslint/eslint-plugin @angular-eslint/eslint-plugin-template @angular-eslint/schematics @typescript-eslint/parser @typescript-eslint/eslint-plugin
-
-npm install --save-dev \
-  eslint@^8.57.0 \
-  @angular-eslint/builder@^18.0.0 \
-  @angular-eslint/eslint-plugin@^18.0.0 \
-  @angular-eslint/eslint-plugin-template@^18.0.0 \
-  @angular-eslint/schematics@^18.0.0 \
-  @typescript-eslint/parser@^8.15.0 \
-  @typescript-eslint/eslint-plugin@^8.15.0
-
-npm install --save-dev eslint@^8.57.0 @angular-eslint/builder@^14.0.0 @angular-eslint/eslint-plugin@^14.0.0 @angular-eslint/eslint-plugin-template@^14.0.0 @angular-eslint/schematics@^14.0.0 @typescript-eslint/parser@^5.0.0 @typescript-eslint/eslint-plugin@^5.0.0
-
-npm install --save-dev eslint@^8.57.0 @angular-eslint/builder@^16.0.0 @angular-eslint/eslint-plugin@^16.0.0 @angular-eslint/eslint-plugin-template@^16.0.0 @angular-eslint/schematics@^16.0.0 @typescript-eslint/parser@^5.62.0 @typescript-eslint/eslint-plugin@^5.62.0
-
-npm install --save-dev eslint@^8.57.0 @angular-eslint/builder@^15.0.0 @angular-eslint/eslint-plugin@^15.0.0 @angular-eslint/eslint-plugin-template@^15.0.0 @angular-eslint/schematics@^15.0.0 @typescript-eslint/parser@^5.62.0 @typescript-eslint/eslint-plugin@^5.62.0
-
-
-ng add @angular-eslint/schematics
-
-"lint": {
-  "builder": "@angular-eslint/builder:lint",
-  "options": {
-    "lintFilePatterns": [
-      "src/**/*.ts",
-      "src/**/*.html"
-    ]
-  }
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "useTabs": false,
+  "trailingComma": "es5",
+  "printWidth": 80
 }
 
-npm install --save-dev @angular-eslint/eslint-plugin-template
+node_modules/
+dist/
+
+"lint-staged": {
+  "*.ts": ["prettier --write"],
+  "*.html": ["prettier --write"],
+  "*.css": ["prettier --write"],
+  "*.scss": ["prettier --write"]
+}
+
 
 {
+  "semi": true, // Add semicolons at the end of statements
+  "singleQuote": true, // Use single quotes where applicable
+  "tabWidth": 2, // Set the default indentation to 2 spaces
+  "useTabs": false, // Use spaces instead of tabs
+  "trailingComma": "es5", // Add trailing commas in ES5-compliant situations (e.g., objects, arrays)
+  "printWidth": 80, // Limit lines to 80 characters for readability
   "overrides": [
     {
-      "files": ["*.html"],
-      "extends": ["plugin:@angular-eslint/template/recommended"],
-      "rules": {
-        // Customize rules as needed
-        "max-len": ["error", { "code": 140 }],
-        "no-inline-styles": "warn",
-        "no-autofocus": "warn"
+      "files": "*.html",
+      "options": {
+        "tabWidth": 4, // Use 4 spaces for HTML indentation
+        "singleQuote": false, // Use double quotes for HTML attributes
+        "htmlWhitespaceSensitivity": "ignore", // Ignore whitespace sensitivity in HTML for consistent formatting
+        "bracketSameLine": true // Place `>` of multi-line elements on the last line instead of a new line
+      }
+    },
+    {
+      "files": ["*.css", "*.scss"],
+      "options": {
+        "singleQuote": false, // Use double quotes for CSS/SCSS
+        "tabWidth": 2, // Use 2 spaces for indentation
+        "bracketSpacing": true, // Add spaces inside braces (e.g., `{ color: red; }`)
+        "trailingComma": "none", // No trailing commas in CSS
+        "printWidth": 100 // Allow slightly longer lines for CSS rules
+      }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "semi": false, // Omit semicolons for TypeScript
+        "singleQuote": true, // Use single quotes for TypeScript
+        "bracketSpacing": true, // Add spaces inside object literals (e.g., `{ foo: bar }`)
+        "trailingComma": "all", // Add trailing commas for easier diffing
+        "arrowParens": "always", // Always include parentheses in arrow functions
+        "printWidth": 80 // Limit lines to 80 characters for readability
       }
     }
   ]
 }
 
-npm install --save-dev stylelint stylelint-config-standard
-
-npm install --save-dev stylelint-scss
-
-module.exports = {
-  extends: [
-    "stylelint-config-standard",
-    "stylelint-config-standard-scss" // For SCSS-specific rules
-  ],
-  rules: {
-    "color-no-invalid-hex": true, // Prevent invalid hex codes
-    "max-nesting-depth": 3,      // Limit nesting depth
-    "no-duplicate-selectors": true,
-    "selector-max-id": 0,        // Avoid ID selectors
-    "string-quotes": "single",   // Enforce single quotes
-    "scss/at-rule-no-unknown": true,
-    "scss/dollar-variable-pattern": "^foo" // Example SCSS-specific rule
-  },
-};
-
-
-
-npm install --save-dev lint-staged
-
-npx husky add .husky/pre-commit "npx lint-staged"
-
-
-Update package.json: Add a lint-staged configuration in package.json for each file type:
-
-json
-Copy code
-{
-  "lint-staged": {
-    "src/**/*.{css,scss}": "stylelint --fix",
-    "src/**/*.html": "eslint --fix",
-    "src/**/*.{ts,js}": "eslint --fix"
-  }
-}
-
-
-
-      "rules": {
-        "max-len": ["error", { "code": 140 }],               // Limit line length
-        "accessibility-alt-text": "error",                  // Ensure <img> has alt text
-        "accessibility-elements-content": "warn",           // Enforce meaningful content in elements
-        "accessibility-label-for": "error",                 // Ensure <label> has a for attribute
-        "accessibility-tabindex-no-positive": "warn",       // Disallow positive tabindex
-        "banana-in-box": "error",                           // Enforce proper two-way binding syntax
-        "no-any": "warn",                                   // Disallow 'any' in template bindings
-        "no-duplicate-attributes": "error",                 // Prevent duplicate attributes
-        "use-track-by-function": "warn",                    // Encourage trackBy for *ngFor
-        "no-call-expression": "error",                      // Avoid calling functions in bindings
-        "mouse-events-have-key-events": "warn",             // Add keyboard events for mouse events
-        "click-events-have-key-events": "warn",             // Add keyboard support for click events
-        "i18n": "warn"                                      // Enforce internationalization in templates
-      }
 
 
 
