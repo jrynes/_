@@ -1,95 +1,59 @@
 const { execSync } = require('child_process');
+const fs = require('fs');
 
 try {
   console.log('=== Starting Post-Commit Hook ===');
 
-  // Get the commit message of the latest commit
-  const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
-  console.log('Last commit message:', lastCommitMessage);
-
-  // Skip the hook if the commit message contains [lint-fix]
-  if (lastCommitMessage.includes('[lint-fix]')) {
-    console.log('Skipping post-commit for lint-fix commit.');
-    process.exit(0);
-  }
-
-  // Get the list of files modified in the last commit
-  console.log('Fetching files modified in the last commit...');
-  const changedFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD')
+  // Check if there are any staged changes
+  const stagedFiles = execSync('git diff --cached --name-only')
     .toString()
     .trim()
     .split('\n')
-    .filter(Boolean); // Remove empty strings
+    .filter(Boolean);
 
-  console.log('Files changed in the last commit:', changedFiles);
-
-  if (changedFiles.length === 0) {
-    console.log('No files changed in the last commit. Exiting...');
+  if (stagedFiles.length === 0) {
+    console.log('No staged files found. Exiting...');
     process.exit(0);
   }
 
-  console.log('=== Validating Linting and Formatting ===');
+  console.log('Staged files:', stagedFiles);
 
-  const validFiles = [];
-  const invalidFiles = [];
-
-  // Validate files without applying changes
-  changedFiles.forEach((file) => {
-    console.log(`Validating file: ${file}`);
-    try {
-      if (file.endsWith('.ts') || file.endsWith('.html')) {
-        execSync(`npx eslint --quiet "${file}"`, { stdio: 'inherit' }); // Run ESLint validation
-        validFiles.push(file);
-      } else if (file.endsWith('.css') || file.endsWith('.scss')) {
-        execSync(`npx stylelint "${file}"`, { stdio: 'inherit' }); // Run Stylelint validation
-        validFiles.push(file);
-      } else {
-        console.log(`Skipping unsupported file: ${file}`);
-      }
-    } catch (error) {
-      console.error(`Validation failed for ${file}:`, error.message);
-      invalidFiles.push(file);
-    }
-  });
-
-  if (invalidFiles.length > 0) {
-    console.error('Some files failed validation:');
-    console.error(invalidFiles);
-    console.log('Aborting post-commit hook.');
-    process.exit(1);
-  }
-
-  console.log('=== Validation Passed. Applying Fixes ===');
-
-  // Track files that were successfully processed
   const processedFiles = [];
 
-  validFiles.forEach((file) => {
-    console.log(`Processing file: ${file}`);
+  stagedFiles.forEach((file) => {
+    console.log(`Processing staged file: ${file}`);
+    const originalContent = fs.readFileSync(file, 'utf-8');
+
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
         console.log(`Running ESLint and Prettier on: ${file}`);
         execSync(`npx eslint --fix "${file}"`, { stdio: 'inherit' });
         execSync(`npx prettier --write "${file}"`, { stdio: 'inherit' });
-        processedFiles.push(file);
       } else if (file.endsWith('.css') || file.endsWith('.scss')) {
         console.log(`Running Stylelint and Prettier on: ${file}`);
         execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
         execSync(`npx prettier --write "${file}"`, { stdio: 'inherit' });
+      } else {
+        console.log(`Skipping unsupported file: ${file}`);
+        return;
+      }
+
+      // Check if the file content has changed
+      const updatedContent = fs.readFileSync(file, 'utf-8');
+      if (originalContent !== updatedContent) {
+        console.log(`File changed: ${file}`);
         processedFiles.push(file);
+      } else {
+        console.log(`File unchanged: ${file}`);
       }
     } catch (error) {
       console.error(`Error processing ${file}:`, error.message);
     }
   });
 
-  console.log('=== Fixing Completed ===');
-  console.log('Files modified during linting and formatting:', processedFiles);
-
   if (processedFiles.length > 0) {
     console.log('Staging processed files...');
     processedFiles.forEach((file) => {
-      console.log(`Staging file: ${file}`);
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
