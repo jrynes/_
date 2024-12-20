@@ -1,8 +1,11 @@
 const { execSync } = require('child_process');
 
 try {
+  console.log('=== Starting Post-Commit Hook ===');
+
   // Get the commit message of the latest commit
   const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
+  console.log('Last commit message:', lastCommitMessage);
 
   // Skip the hook if the commit message contains [lint-fix]
   if (lastCommitMessage.includes('[lint-fix]')) {
@@ -11,63 +14,65 @@ try {
   }
 
   // Get the list of files modified in the last commit
+  console.log('Fetching files modified in the last commit...');
   const changedFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD')
     .toString()
     .trim()
     .split('\n')
-    .filter(Boolean); // Filter out empty strings
+    .filter(Boolean); // Remove empty strings
+
+  console.log('Files changed in the last commit:', changedFiles);
 
   if (changedFiles.length === 0) {
-    console.log('No files changed in the last commit.');
+    console.log('No files changed in the last commit. Exiting...');
     process.exit(0);
   }
 
-  console.log('Processing the following files from the last commit:');
-  console.log(changedFiles);
+  console.log('=== Starting Linting Process ===');
 
   // Track files that were successfully delinted
   const delintedFiles = [];
 
-  // Run linting and fixing on files modified in the last commit only
+  // Process each file
   changedFiles.forEach((file) => {
+    console.log(`Processing file: ${file}`);
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
-        console.log(`Linting: ${file}`);
+        console.log(`Running ESLint on: ${file}`);
         execSync(`npx eslint --fix "${file}"`, { stdio: 'inherit' });
         delintedFiles.push(file);
       } else if (file.endsWith('.css') || file.endsWith('.scss')) {
-        console.log(`Linting: ${file}`);
+        console.log(`Running Stylelint on: ${file}`);
         execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
         delintedFiles.push(file);
       } else {
         console.log(`Skipping unsupported file: ${file}`);
       }
     } catch (error) {
-      console.error(`Error linting ${file}:`, error.message);
+      console.error(`Error while linting ${file}:`, error.message);
     }
   });
 
-  // Restrict to only the delinted files
-  const changedFilesAfterLint = execSync('git diff --name-only')
-    .toString()
-    .trim()
-    .split('\n')
-    .filter((file) => delintedFiles.includes(file));
+  console.log('=== Linting Completed ===');
+  console.log('Files modified by linting:', delintedFiles);
 
-  if (changedFilesAfterLint.length > 0) {
-    console.log('Changes detected after linting. Staging the following files:');
-    console.log(changedFilesAfterLint);
-
-    // Stage only the delinted files
-    changedFilesAfterLint.forEach((file) => {
+  // Stage and commit only delinted files
+  if (delintedFiles.length > 0) {
+    console.log('Staging delinted files...');
+    delintedFiles.forEach((file) => {
+      console.log(`Staging file: ${file}`);
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    // Create a new commit for the lint fixes
+    console.log('Creating a new commit for lint fixes...');
     execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
+
+    console.log('Lint fixes committed successfully.');
   } else {
-    console.log('No delinted files detected.');
+    console.log('No delinted files to stage. No commit created.');
   }
+
+  console.log('=== Post-Commit Hook Completed ===');
 } catch (error) {
   console.error('Post-commit hook failed:', error.message);
   process.exit(1);
