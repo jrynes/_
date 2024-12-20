@@ -1,18 +1,70 @@
 const { execSync } = require('child_process');
 
 try {
-  // Run lint-staged
-  console.log('Running lint-staged...');
-  execSync('npx lint-staged', { stdio: 'inherit' });
+  // Get the commit message of the latest commit
+  const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
 
-  // Check for staged changes
-  const stagedFiles = execSync('git diff --cached --name-only').toString().trim();
-  if (stagedFiles) {
-    console.log('Staged files found:', stagedFiles);
-    // Create a new commit for lint fixes
+  // Skip the hook if the commit message contains [lint-fix]
+  if (lastCommitMessage.includes('[lint-fix]')) {
+    console.log('Skipping post-commit for lint-fix commit.');
+    process.exit(0);
+  }
+
+  // Get the list of files modified in the last commit
+  const changedFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD')
+    .toString()
+    .trim()
+    .split('\n')
+    .filter(Boolean); // Filter out empty strings
+
+  if (changedFiles.length === 0) {
+    console.log('No files changed in the last commit.');
+    process.exit(0);
+  }
+
+  console.log('Processing the following files from the last commit:');
+  console.log(changedFiles);
+
+  // Run linting and fixing on the files
+  const lintedFiles = [];
+  changedFiles.forEach((file) => {
+    try {
+      if (file.endsWith('.ts') || file.endsWith('.html')) {
+        console.log(`Linting: ${file}`);
+        execSync(`npx eslint --fix "${file}"`, { stdio: 'inherit' });
+        lintedFiles.push(file);
+      } else if (file.endsWith('.css') || file.endsWith('.scss')) {
+        console.log(`Linting: ${file}`);
+        execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
+        lintedFiles.push(file);
+      } else {
+        console.log(`Skipping unsupported file: ${file}`);
+      }
+    } catch (error) {
+      console.error(`Error linting ${file}:`, error.message);
+    }
+  });
+
+  // Check for changes after linting
+  const changedFilesAfterLint = execSync('git diff --name-only')
+    .toString()
+    .trim()
+    .split('\n')
+    .filter(Boolean); // Filter out empty strings
+
+  if (changedFilesAfterLint.length > 0) {
+    console.log('Changes detected after linting. Staging the following files:');
+    console.log(changedFilesAfterLint);
+
+    // Stage only the files that were delinted
+    changedFilesAfterLint.forEach((file) => {
+      execSync(`git add "${file}"`, { stdio: 'inherit' });
+    });
+
+    // Commit the staged lint fixes
     execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
   } else {
-    console.log('No staged changes after lint-staged.');
+    console.log('No changes detected after linting.');
   }
 } catch (error) {
   console.error('Post-commit hook failed:', error.message);
