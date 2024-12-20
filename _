@@ -4,24 +4,35 @@ const fs = require('fs');
 try {
   console.log('=== Starting Post-Commit Hook ===');
 
-  // Check if there are any staged changes
-  const stagedFiles = execSync('git diff --cached --name-only')
+  // Skip the hook if the commit message contains [lint-fix]
+  const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
+  console.log('Last commit message:', lastCommitMessage);
+
+  if (lastCommitMessage.includes('[lint-fix]')) {
+    console.log('Skipping post-commit for lint-fix commit.');
+    process.exit(0);
+  }
+
+  // Get the list of files modified in the last commit
+  console.log('Fetching files modified in the last commit...');
+  const changedFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD')
     .toString()
     .trim()
     .split('\n')
     .filter(Boolean);
 
-  if (stagedFiles.length === 0) {
-    console.log('No staged files found. Exiting...');
+  console.log('Files modified in the last commit:', changedFiles);
+
+  if (changedFiles.length === 0) {
+    console.log('No files changed in the last commit. Exiting...');
     process.exit(0);
   }
 
-  console.log('Staged files:', stagedFiles);
-
   const processedFiles = [];
 
-  stagedFiles.forEach((file) => {
-    console.log(`Processing staged file: ${file}`);
+  // Process each file from the last commit
+  changedFiles.forEach((file) => {
+    console.log(`Processing file: ${file}`);
     const originalContent = fs.readFileSync(file, 'utf-8');
 
     try {
