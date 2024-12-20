@@ -64,10 +64,20 @@ try {
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    console.log('Creating a new commit for lint fixes...');
-    execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
+    // Check if there are staged changes after linting
+    const stagedChanges = execSync('git diff --cached --name-only')
+      .toString()
+      .trim()
+      .split('\n')
+      .filter(Boolean); // Remove empty strings
 
-    console.log('Lint fixes committed successfully.');
+    if (stagedChanges.length > 0) {
+      console.log('Creating a new commit for lint fixes...');
+      execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
+      console.log('Lint fixes committed successfully.');
+    } else {
+      console.log('No staged changes after linting. Skipping commit.');
+    }
   } else {
     console.log('No delinted files to stage. No commit created.');
   }
