@@ -84,7 +84,7 @@ try {
   });
 
   console.log('=== Fixing Completed ===');
-  console.log('Files modified:', processedFiles);
+  console.log('Files modified during linting and formatting:', processedFiles);
 
   if (processedFiles.length > 0) {
     console.log('Staging processed files...');
@@ -93,11 +93,11 @@ try {
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    console.log('Creating a new commit for all lint and format fixes...');
+    console.log('Creating a new commit for lint and format fixes...');
     execSync('git commit -m "chore: apply lint and format fixes [lint-fix]"', { stdio: 'inherit' });
     console.log('Lint and format fixes committed successfully.');
   } else {
-    console.log('No files to stage. Skipping commit.');
+    console.log('No lint or format fixes to commit. Keeping the original commit.');
   }
 
   console.log('=== Post-Commit Hook Completed ===');
