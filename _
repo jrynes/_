@@ -29,6 +29,7 @@ try {
   }
 
   const processedFiles = [];
+  const errorFiles = [];
 
   // Process each file from the last commit
   changedFiles.forEach((file) => {
@@ -59,8 +60,21 @@ try {
       }
     } catch (error) {
       console.error(`Error processing ${file}:`, error.message);
+      errorFiles.push(file);
     }
   });
+
+  if (errorFiles.length > 0) {
+    console.error('=== Errors Detected During Linting/Formatting ===');
+    console.error(
+      'The following files have issues and require manual fixing before committing:'
+    );
+    console.error(errorFiles.join('\n'));
+    console.error(
+      'Please fix these issues and try committing again.\nRefer to the console output above for specific error details.'
+    );
+    process.exit(1); // Abort the hook
+  }
 
   if (processedFiles.length > 0) {
     console.log('Staging processed files...');
