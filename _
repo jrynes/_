@@ -28,12 +28,43 @@ try {
     process.exit(0);
   }
 
-  console.log('=== Starting Linting and Formatting Process ===');
+  console.log('=== Validating Linting and Formatting ===');
+
+  const validFiles = [];
+  const invalidFiles = [];
+
+  // Validate files without applying changes
+  changedFiles.forEach((file) => {
+    console.log(`Validating file: ${file}`);
+    try {
+      if (file.endsWith('.ts') || file.endsWith('.html')) {
+        execSync(`npx eslint --quiet "${file}"`, { stdio: 'inherit' }); // Run ESLint validation
+        validFiles.push(file);
+      } else if (file.endsWith('.css') || file.endsWith('.scss')) {
+        execSync(`npx stylelint "${file}"`, { stdio: 'inherit' }); // Run Stylelint validation
+        validFiles.push(file);
+      } else {
+        console.log(`Skipping unsupported file: ${file}`);
+      }
+    } catch (error) {
+      console.error(`Validation failed for ${file}:`, error.message);
+      invalidFiles.push(file);
+    }
+  });
+
+  if (invalidFiles.length > 0) {
+    console.error('Some files failed validation:');
+    console.error(invalidFiles);
+    console.log('Aborting post-commit hook.');
+    process.exit(1);
+  }
+
+  console.log('=== Validation Passed. Applying Fixes ===');
 
   // Track files that were successfully processed
   const processedFiles = [];
 
-  changedFiles.forEach((file) => {
+  validFiles.forEach((file) => {
     console.log(`Processing file: ${file}`);
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
@@ -46,15 +77,13 @@ try {
         execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
         execSync(`npx prettier --write "${file}"`, { stdio: 'inherit' });
         processedFiles.push(file);
-      } else {
-        console.log(`Skipping unsupported file: ${file}`);
       }
     } catch (error) {
       console.error(`Error processing ${file}:`, error.message);
     }
   });
 
-  console.log('=== Linting and Formatting Completed ===');
+  console.log('=== Fixing Completed ===');
   console.log('Files modified:', processedFiles);
 
   if (processedFiles.length > 0) {
