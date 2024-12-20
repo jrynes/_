@@ -28,68 +28,47 @@ try {
     process.exit(0);
   }
 
-  console.log('=== Starting Linting Process ===');
+  console.log('=== Starting Linting and Formatting Process ===');
 
-  // Track files that were successfully delinted
-  const delintedFiles = [];
+  // Track files that were successfully processed
+  const processedFiles = [];
 
-  // Process each file
   changedFiles.forEach((file) => {
     console.log(`Processing file: ${file}`);
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
-        console.log(`Running ESLint on: ${file}`);
+        console.log(`Running ESLint and Prettier on: ${file}`);
         execSync(`npx eslint --fix "${file}"`, { stdio: 'inherit' });
-        delintedFiles.push(file);
+        execSync(`npx prettier --write "${file}"`, { stdio: 'inherit' });
+        processedFiles.push(file);
       } else if (file.endsWith('.css') || file.endsWith('.scss')) {
-        console.log(`Running Stylelint on: ${file}`);
+        console.log(`Running Stylelint and Prettier on: ${file}`);
         execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
-        delintedFiles.push(file);
+        execSync(`npx prettier --write "${file}"`, { stdio: 'inherit' });
+        processedFiles.push(file);
       } else {
         console.log(`Skipping unsupported file: ${file}`);
       }
     } catch (error) {
-      console.error(`Error while linting ${file}:`, error.message);
+      console.error(`Error processing ${file}:`, error.message);
     }
   });
 
-  console.log('=== Linting Completed ===');
-  console.log('Files modified by linting:', delintedFiles);
+  console.log('=== Linting and Formatting Completed ===');
+  console.log('Files modified:', processedFiles);
 
-  if (delintedFiles.length > 0) {
-    console.log('Staging delinted files...');
-    delintedFiles.forEach((file) => {
+  if (processedFiles.length > 0) {
+    console.log('Staging processed files...');
+    processedFiles.forEach((file) => {
       console.log(`Staging file: ${file}`);
-      try {
-        execSync(`git add "${file}"`, { stdio: 'inherit' });
-      } catch (error) {
-        console.error(`Failed to stage file ${file}:`, error.message);
-      }
+      execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    // Debugging staged changes
-    console.log('Checking staged changes...');
-    const stagedChanges = execSync('git diff --cached --name-only')
-      .toString()
-      .trim()
-      .split('\n')
-      .filter(Boolean); // Remove empty strings
-
-    console.log('Staged changes:', stagedChanges);
-
-    if (stagedChanges.length > 0) {
-      console.log('Creating a new commit for lint fixes...');
-      try {
-        execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
-        console.log('Lint fixes committed successfully.');
-      } catch (error) {
-        console.error('Failed to create commit:', error.message);
-      }
-    } else {
-      console.log('No staged changes after linting. Skipping commit.');
-    }
+    console.log('Creating a new commit for lint and format fixes...');
+    execSync('git commit -m "chore: apply lint and format fixes [lint-fix]"', { stdio: 'inherit' });
+    console.log('Lint and format fixes committed successfully.');
   } else {
-    console.log('No delinted files to stage. No commit created.');
+    console.log('No files to stage. Skipping commit.');
   }
 
   console.log('=== Post-Commit Hook Completed ===');
