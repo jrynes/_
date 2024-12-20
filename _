@@ -25,10 +25,10 @@ try {
   console.log('Processing the following files from the last commit:');
   console.log(changedFiles);
 
-  // Track files that are delinted
+  // Track files that were successfully delinted
   const delintedFiles = [];
 
-  // Run linting and fixing on the files from the last commit only
+  // Run linting and fixing on files modified in the last commit only
   changedFiles.forEach((file) => {
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
@@ -47,10 +47,19 @@ try {
     }
   });
 
-  // Stage and commit only the delinted files
-  if (delintedFiles.length > 0) {
-    console.log('Delinted files detected. Staging and committing...');
-    delintedFiles.forEach((file) => {
+  // Restrict to only the delinted files
+  const changedFilesAfterLint = execSync('git diff --name-only')
+    .toString()
+    .trim()
+    .split('\n')
+    .filter((file) => delintedFiles.includes(file));
+
+  if (changedFilesAfterLint.length > 0) {
+    console.log('Changes detected after linting. Staging the following files:');
+    console.log(changedFilesAfterLint);
+
+    // Stage only the delinted files
+    changedFilesAfterLint.forEach((file) => {
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
