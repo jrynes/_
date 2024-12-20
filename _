@@ -1,15 +1,13 @@
+# Get a list of files with changes after lint-staged
+CHANGED_FILES=$(git diff --cached --name-only)
 
-  <div class="container mt-4">
-    <div class="border rounded shadow-sm p-3" style="background-color: #f8f9fa;">
-      <!-- Header Section -->
-      <div class="p-2" style="background-color: #007bff; color: white; font-weight: bold; text-align: center;">
-        Notice
-      </div>
-      <!-- Body Section -->
-      <div class="mt-3">
-        <p>
-          This is an important announcement. Please take note of the following details to stay updated with the latest information.
-        </p>
-      </div>
-    </div>
-  </div>
+# Check if there are any changes after fixes
+if [ -n "$CHANGED_FILES" ]; then
+  # Loop through each changed file and stage it
+  echo "$CHANGED_FILES" | while read -r file; do
+    git add "$file"
+  done
+
+  # Create a separate commit for the fixes
+  git commit -m "chore: apply lint fixes"
+fi
