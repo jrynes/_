@@ -56,25 +56,35 @@ try {
   console.log('=== Linting Completed ===');
   console.log('Files modified by linting:', delintedFiles);
 
-  // Stage and commit only delinted files
   if (delintedFiles.length > 0) {
     console.log('Staging delinted files...');
     delintedFiles.forEach((file) => {
       console.log(`Staging file: ${file}`);
-      execSync(`git add "${file}"`, { stdio: 'inherit' });
+      try {
+        execSync(`git add "${file}"`, { stdio: 'inherit' });
+      } catch (error) {
+        console.error(`Failed to stage file ${file}:`, error.message);
+      }
     });
 
-    // Check if there are staged changes after linting
+    // Debugging staged changes
+    console.log('Checking staged changes...');
     const stagedChanges = execSync('git diff --cached --name-only')
       .toString()
       .trim()
       .split('\n')
       .filter(Boolean); // Remove empty strings
 
+    console.log('Staged changes:', stagedChanges);
+
     if (stagedChanges.length > 0) {
       console.log('Creating a new commit for lint fixes...');
-      execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
-      console.log('Lint fixes committed successfully.');
+      try {
+        execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
+        console.log('Lint fixes committed successfully.');
+      } catch (error) {
+        console.error('Failed to create commit:', error.message);
+      }
     } else {
       console.log('No staged changes after linting. Skipping commit.');
     }
