@@ -1,41 +1,20 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+const { execSync } = require('child_process');
 
-# Skip the hook if the commit message contains [lint-fix]
-if git log -1 --pretty=%B | grep -q "\[lint-fix\]"; then
-  echo "Skipping post-commit for lint-fix commit."
-  exit 0
-fi
+try {
+  // Run lint-staged
+  console.log('Running lint-staged...');
+  execSync('npx lint-staged', { stdio: 'inherit' });
 
-# Get the list of files changed in the last commit
-CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
-
-# Run linting and fixing on the files
-echo "Processing the following files from the last commit:"
-echo "$CHANGED_FILES"
-
-# Run eslint/prettier/stylelint as needed
-echo "$CHANGED_FILES" | while read -r file; do
-  case "$file" in
-    *.ts)
-      npx eslint --fix "$file"
-      ;;
-    *.html)
-      npx eslint --fix "$file"
-      ;;
-    *.css|*.scss)
-      npx stylelint --fix "$file"
-      ;;
-  esac
-done
-
-# Check if there are any changes after linting
-if [ -n "$(git diff --name-only)" ]; then
-  echo "Staging linted files..."
-  git add $CHANGED_FILES
-
-  # Create a new commit for lint fixes
-  git commit -m "chore: apply lint fixes [lint-fix]"
-else
-  echo "No changes detected after linting."
-fi
+  // Check for staged changes
+  const stagedFiles = execSync('git diff --cached --name-only').toString().trim();
+  if (stagedFiles) {
+    console.log('Staged files found:', stagedFiles);
+    // Create a new commit for lint fixes
+    execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
+  } else {
+    console.log('No staged changes after lint-staged.');
+  }
+} catch (error) {
+  console.error('Post-commit hook failed:', error.message);
+  process.exit(1);
+}
