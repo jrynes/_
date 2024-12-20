@@ -93,7 +93,7 @@ try {
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    console.log('Creating a new commit for lint and format fixes...');
+    console.log('Creating a new commit for all lint and format fixes...');
     execSync('git commit -m "chore: apply lint and format fixes [lint-fix]"', { stdio: 'inherit' });
     console.log('Lint and format fixes committed successfully.');
   } else {
