@@ -25,18 +25,20 @@ try {
   console.log('Processing the following files from the last commit:');
   console.log(changedFiles);
 
-  // Run linting and fixing on the files
-  const lintedFiles = [];
+  // Track files that are delinted
+  const delintedFiles = [];
+
+  // Run linting and fixing on the files from the last commit only
   changedFiles.forEach((file) => {
     try {
       if (file.endsWith('.ts') || file.endsWith('.html')) {
         console.log(`Linting: ${file}`);
         execSync(`npx eslint --fix "${file}"`, { stdio: 'inherit' });
-        lintedFiles.push(file);
+        delintedFiles.push(file);
       } else if (file.endsWith('.css') || file.endsWith('.scss')) {
         console.log(`Linting: ${file}`);
         execSync(`npx stylelint --fix "${file}"`, { stdio: 'inherit' });
-        lintedFiles.push(file);
+        delintedFiles.push(file);
       } else {
         console.log(`Skipping unsupported file: ${file}`);
       }
@@ -45,26 +47,17 @@ try {
     }
   });
 
-  // Check for changes after linting
-  const changedFilesAfterLint = execSync('git diff --name-only')
-    .toString()
-    .trim()
-    .split('\n')
-    .filter(Boolean); // Filter out empty strings
-
-  if (changedFilesAfterLint.length > 0) {
-    console.log('Changes detected after linting. Staging the following files:');
-    console.log(changedFilesAfterLint);
-
-    // Stage only the files that were delinted
-    changedFilesAfterLint.forEach((file) => {
+  // Stage and commit only the delinted files
+  if (delintedFiles.length > 0) {
+    console.log('Delinted files detected. Staging and committing...');
+    delintedFiles.forEach((file) => {
       execSync(`git add "${file}"`, { stdio: 'inherit' });
     });
 
-    // Commit the staged lint fixes
+    // Create a new commit for the lint fixes
     execSync('git commit -m "chore: apply lint fixes [lint-fix]"', { stdio: 'inherit' });
   } else {
-    console.log('No changes detected after linting.');
+    console.log('No delinted files detected.');
   }
 } catch (error) {
   console.error('Post-commit hook failed:', error.message);
