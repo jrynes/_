@@ -1,1 +1,6 @@
 
+var gr = new GlideRecord('sys_update_set');
+gr.query();
+while (gr.next()) {
+    gs.print("Update Set Name: " + gr.getValue('name') + " | Export URL: " + gs.getProperty('glide.servlet.uri') + "sys_update_set.do?sys_id=" + gr.getValue('sys_id') + "&XML");
+}
