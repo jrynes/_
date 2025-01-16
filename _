@@ -1,33 +1,10 @@
-# Define variables
-$instanceUrl = "https://yourinstance.service-now.com"  # Replace with your ServiceNow instance URL
-$username = "your_username"                           # Replace with your ServiceNow username
-$password = "your_password"                           # Replace with your ServiceNow password
-$outputFolder = "C:\Users\YourUser\Downloads\UpdateSets" # Replace with your desired output folder
-$urlFile = "C:\path\to\update_set_urls.txt"           # Path to your text file with URLs
-
-# Ensure output folder exists
-if (!(Test-Path -Path $outputFolder)) {
-    New-Item -ItemType Directory -Force -Path $outputFolder
-}
-
-# Read URLs from file
-$urls = Get-Content -Path $urlFile
-
-# Download each XML file
-foreach ($url in $urls) {
-    try {
-        # Extract sys_id from URL for file naming
-        $sysId = ($url -split "sys_id=")[1] -split "&XML"
-        $fileName = "$outputFolder\UpdateSet_$sysId.xml"
-
-        # Download the file with basic authentication
-        $response = Invoke-WebRequest -Uri $url -Credential (New-Object System.Management.Automation.PSCredential($username, (ConvertTo-SecureString $password -AsPlainText -Force)))
-
-        # Save the content to file
-        $response.Content | Out-File -FilePath $fileName -Encoding utf8
-
-        Write-Host "Downloaded: $fileName"
-    } catch {
-        Write-Host "Failed to download: $url"
-    }
+var updateSetSysId = "<update_set_sys_id>"; // Replace with your update set sys_id
+var gr = new GlideRecord("sys_update_set");
+if (gr.get(updateSetSysId)) {
+    var exportXml = new GlideExportXML();
+    exportXml.setRecord(gr); // Set the update set record
+    var attachmentSysId = exportXml.write("Exported Update Set " + gr.name + ".xml", "sys_update_set", gr.sys_id);
+    gs.print("XML export created and attached with sys_id: " + attachmentSysId);
+} else {
+    gs.print("Update set not found for sys_id: " + updateSetSysId);
 }
