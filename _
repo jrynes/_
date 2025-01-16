@@ -1,0 +1,72 @@
+  let component: CnUpdateDetailsComponent;
+  let fixture: ComponentFixture<CnUpdateDetailsComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [CnUpdateDetailsComponent],
+      imports: [
+        BrowserAnimationsModule,
+        RouterTestingModule.withRoutes([]),
+      ],
+      providers: [
+        DatePipe,
+        { provide: CnRequestsService, useClass: CnRequestsServiceStub },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: of({ reqId: '55712200' }),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(CnUpdateDetailsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should fetch data and populate compareData correctly', () => {
+    const expectedCompareData = [
+      {
+        fieldName: 'Name 1',
+        prevValue: 'Old Address 1',
+        newValue: 'LEYDIG, VOIT AND MAYER',
+      },
+      {
+        fieldName: 'Address 1',
+        prevValue: 'Old Line 1',
+        newValue: 'TWO PRUDENTIAL PLAZA, SUITE 4900',
+      },
+      {
+        fieldName: 'City',
+        prevValue: 'Old City',
+        newValue: 'CHICAGO',
+      },
+      {
+        fieldName: 'State',
+        prevValue: 'OC',
+        newValue: 'IL',
+      },
+      {
+        fieldName: 'Zip',
+        prevValue: '00001',
+        newValue: '60601',
+      },
+    ];
+
+    expect(component.compareData.data).toEqual(expectedCompareData);
+  });
+
+  it('should handle empty or null data gracefully', () => {
+    component.result = {
+      geographicAddressBag: [],
+      oldGeographicAddressBag: [],
+    };
+    fixture.detectChanges();
+
+    expect(component.compareData.data).toEqual([]);
+  });
