@@ -1,6 +1,33 @@
+# Define variables
+$instanceUrl = "https://yourinstance.service-now.com"  # Replace with your ServiceNow instance URL
+$username = "your_username"                           # Replace with your ServiceNow username
+$password = "your_password"                           # Replace with your ServiceNow password
+$outputFolder = "C:\Users\YourUser\Downloads\UpdateSets" # Replace with your desired output folder
+$urlFile = "C:\path\to\update_set_urls.txt"           # Path to your text file with URLs
 
-var gr = new GlideRecord('sys_update_set');
-gr.query();
-while (gr.next()) {
-    gs.print("Update Set Name: " + gr.getValue('name') + " | Export URL: " + gs.getProperty('glide.servlet.uri') + "sys_update_set.do?sys_id=" + gr.getValue('sys_id') + "&XML");
+# Ensure output folder exists
+if (!(Test-Path -Path $outputFolder)) {
+    New-Item -ItemType Directory -Force -Path $outputFolder
+}
+
+# Read URLs from file
+$urls = Get-Content -Path $urlFile
+
+# Download each XML file
+foreach ($url in $urls) {
+    try {
+        # Extract sys_id from URL for file naming
+        $sysId = ($url -split "sys_id=")[1] -split "&XML"
+        $fileName = "$outputFolder\UpdateSet_$sysId.xml"
+
+        # Download the file with basic authentication
+        $response = Invoke-WebRequest -Uri $url -Credential (New-Object System.Management.Automation.PSCredential($username, (ConvertTo-SecureString $password -AsPlainText -Force)))
+
+        # Save the content to file
+        $response.Content | Out-File -FilePath $fileName -Encoding utf8
+
+        Write-Host "Downloaded: $fileName"
+    } catch {
+        Write-Host "Failed to download: $url"
+    }
 }
