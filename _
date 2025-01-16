@@ -1,72 +1,111 @@
-  let component: CnUpdateDetailsComponent;
-  let fixture: ComponentFixture<CnUpdateDetailsComponent>;
+const oldAddress = r.oldGeographicAddressBag?.[0] || {};
+        const newAddress = r.geographicAddressBag?.[0] || {};
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [CnUpdateDetailsComponent],
-      imports: [
-        BrowserAnimationsModule,
-        RouterTestingModule.withRoutes([]),
-      ],
-      providers: [
-        DatePipe,
-        { provide: CnRequestsService, useClass: CnRequestsServiceStub },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            queryParams: of({ reqId: '55712200' }),
+        const list = [
+          {
+            fieldName: 'Name 1',
+            prevValue: oldAddress.nameLineOneText || '',
+            newValue: newAddress.nameLineOneText || '',
           },
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(CnUpdateDetailsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should fetch data and populate compareData correctly', () => {
-    const expectedCompareData = [
-      {
-        fieldName: 'Name 1',
-        prevValue: 'Old Address 1',
-        newValue: 'LEYDIG, VOIT AND MAYER',
-      },
-      {
-        fieldName: 'Address 1',
-        prevValue: 'Old Line 1',
-        newValue: 'TWO PRUDENTIAL PLAZA, SUITE 4900',
-      },
-      {
-        fieldName: 'City',
-        prevValue: 'Old City',
-        newValue: 'CHICAGO',
-      },
-      {
-        fieldName: 'State',
-        prevValue: 'OC',
-        newValue: 'IL',
-      },
-      {
-        fieldName: 'Zip',
-        prevValue: '00001',
-        newValue: '60601',
-      },
-    ];
-
-    expect(component.compareData.data).toEqual(expectedCompareData);
-  });
-
-  it('should handle empty or null data gracefully', () => {
-    component.result = {
-      geographicAddressBag: [],
-      oldGeographicAddressBag: [],
-    };
-    fixture.detectChanges();
-
-    expect(component.compareData.data).toEqual([]);
-  });
+          {
+            fieldName: 'Name 2',
+            prevValue: oldAddress.nameLineTwoText || '',
+            newValue: newAddress.nameLineTwoText || '',
+          },
+          {
+            fieldName: 'Address 1',
+            prevValue: oldAddress.addressLineOneText || '',
+            newValue: newAddress.addressLineOneText || '',
+          },
+          {
+            fieldName: 'Address 2',
+            prevValue: oldAddress.addressLineTwoText || '',
+            newValue: newAddress.addressLineTwoText || '',
+          },
+          {
+            fieldName: 'City',
+            prevValue: oldAddress.cityName || '',
+            newValue: newAddress.cityName || '',
+          },
+          {
+            fieldName: 'State',
+            prevValue: oldAddress.geographicRegionCode || '',
+            newValue: newAddress.geographicRegionCode || '',
+          },
+          {
+            fieldName: 'Zip',
+            prevValue: oldAddress.postalCode || '',
+            newValue: newAddress.postalCode || '',
+          },
+          {
+            fieldName: 'Country',
+            prevValue: oldAddress.countryCode || '',
+            newValue: newAddress.countryCode || '',
+          },
+          {
+            fieldName: 'eMail 1',
+            prevValue: r.oldEmailBag?.[0]?.electronicText || '',
+            newValue: r.emailBag?.[0]?.electronicText || '',
+          },
+          {
+            fieldName: 'eMail 2',
+            prevValue: r.oldEmailBag?.[1]?.electronicText || '',
+            newValue: r.emailBag?.[1]?.electronicText || '',
+          },
+          {
+            fieldName: 'eMail 3',
+            prevValue: r.oldEmailBag?.[2]?.electronicText || '',
+            newValue: r.emailBag?.[2]?.electronicText || '',
+          },
+          {
+            fieldName: 'Telephone 1',
+            prevValue: r.oldPhoneNumberBag?.[0]?.phoneNumber || '',
+            newValue: r.phoneNumberBag?.[0]?.phoneNumber || '',
+          },
+          {
+            fieldName: 'Telephone 2',
+            prevValue: r.oldPhoneNumberBag?.[1]?.phoneNumber || '',
+            newValue: r.phoneNumberBag?.[1]?.phoneNumber || '',
+          },
+          {
+            fieldName: 'Telephone 3',
+            prevValue: r.oldPhoneNumberBag?.[2]?.phoneNumber || '',
+            newValue: r.phoneNumberBag?.[2]?.phoneNumber || '',
+          },
+          {
+            fieldName: 'Fax 1',
+            prevValue: r.oldFaxNumberBag?.[0]?.phoneNumber || '',
+            newValue: r.faxNumberBag?.[0]?.phoneNumber || '',
+          },
+          {
+            fieldName: 'Fax 2',
+            prevValue: r.oldFaxNumberBag?.[1]?.phoneNumber || '',
+            newValue: r.faxNumberBag?.[1]?.phoneNumber || '',
+          },
+          {
+            fieldName: 'Outgoing correspondence',
+            prevValue: r.postalMailIndicatorOld === true
+              ? 'Mail'
+              : r.postalMailIndicatorOld === false
+              ? 'Email'
+              : '',
+            newValue: r.postalMailIndicator === true
+              ? 'Mail'
+              : r.postalMailIndicator === false
+              ? 'Email'
+              : '',
+          },
+          {
+            fieldName: 'Postcard Method',
+            prevValue: r.postalMailingIndicatorOld === true
+              ? 'Mail'
+              : r.postalMailingIndicatorOld === false
+              ? 'Email'
+              : '',
+            newValue: r.postalMailingIndicator === true
+              ? 'Mail'
+              : r.postalMailingIndicator === false
+              ? 'Email'
+              : '',
+          },
+        ];
