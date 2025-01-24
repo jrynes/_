@@ -1,14 +1,1 @@
-/**
- * A service that listens for route changes and performs actions based on navigation events.
- *
- * This service monitors route changes using Angular's `Router` and triggers specific actions when the home page
- * (`'/'` or `'/index.html'`) is navigated to. If the application is not initialized, it triggers re-initialization
- * through the `AppLoadService`.
- */
 
-  /**
-   * Initializes the service and subscribes to Angular router events.
-   *
-   * @param {AppLoadService} appLoadService - The service responsible for handling app initialization and re-initialization.
-   * @param {Router} router - Angular's Router instance used to listen for route changes.
-   */
