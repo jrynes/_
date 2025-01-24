@@ -1,1 +1,75 @@
 
+/**
+ * Refreshes the Okta access token for the given scopes and stores the result in sessionStorage.
+ * 
+ * @param {string[]} requiredScopes - The list of scopes required for the access token.
+ * @param {string} storageKey - A unique key used to store the access token in sessionStorage.
+ * @returns {Promise<string | null>} - The new access token if successful, or null if no token is returned.
+ * @throws Will throw an error if token retrieval fails.
+ * 
+ * @description
+ * This method interacts with Okta's token API to refresh the access token without prompting the user.
+ * It logs detailed information to assist with troubleshooting, including Okta configurations and session details.
+ */
+async refreshTokenForScopes(requiredScopes: string[], storageKey: string): Promise<string | null> {
+  try {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Attempting to refresh token with scopes: ${requiredScopes.join(', ')}`);
+    console.log(`[${timestamp}] Using storageKey: ${storageKey}`);
+
+    // Call Okta's token.getWithoutPrompt API
+    const res: any = await this.oktaAuth.token.getWithoutPrompt({
+      responseType: ['id_token', 'token'],
+      scopes: requiredScopes,
+    });
+
+    console.log(`[${timestamp}] Token refresh response:`, res);
+
+    // Check if the accessToken and scopes are available
+    if (res?.tokens?.accessToken?.scopes) {
+      const newScopes = res.tokens.accessToken.scopes.join(', ');
+      const existingScopes = sessionStorage.getItem('oktaScopes') || '';
+      const updatedScopes = existingScopes ? `${existingScopes},${newScopes}` : newScopes;
+
+      sessionStorage.setItem('oktaScopes', updatedScopes);
+      sessionStorage.setItem(`accessToken_${storageKey}`, res.tokens.accessToken.accessToken);
+
+      // Handle specific scope logic (e.g., enrollment)
+      if (requiredScopes.some(scope => scope.includes('enrollment'))) {
+        sessionStorage.setItem('accessToken_ENROLLMENT', res.tokens.accessToken.accessToken);
+      }
+
+      console.log(`[${timestamp}] Updated scopes in sessionStorage: ${updatedScopes}`);
+      return res.tokens.accessToken.accessToken;
+    }
+
+    console.warn(`[${timestamp}] AccessToken or scopes not found in the response.`);
+    return null;
+
+  } catch (error) {
+    const timestamp = new Date().toISOString();
+
+    // Log error details for Okta team troubleshooting
+    console.error(`[${timestamp}] Token retrieval or validation failed:`, {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack,
+      requiredScopes,
+      storageKey,
+      oktaConfig: {
+        issuer: this.oktaAuth.options.issuer,
+        clientId: this.oktaAuth.options.clientId,
+        redirectUri: this.oktaAuth.options.redirectUri,
+      },
+    });
+
+    // Provide actionable advice for common errors
+    if (error?.message?.includes('Policy evaluation failed')) {
+      console.error(`[${timestamp}] Suggestion: Check the Okta policy configurations to ensure the required scopes (${requiredScopes.join(', ')}) are allowed.`);
+    } else {
+      console.error(`[${timestamp}] Suggestion: Review the Okta application settings and ensure all required configurations are correct.`);
+    }
+
+    // Rethrow the error for upstream handling
+    throw error;
+  }
+}
