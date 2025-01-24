@@ -1,25 +1,47 @@
 /**
- * Renews all tokens stored in sessionStorage if they are nearing expiration.
+ * Logs the session timeout warning popup time.
  *
- * This method checks the expiration of access tokens and ID tokens managed by Okta's Token Manager.
- * If any tokens are about to expire (within 5 minutes), it renews them using Okta's API.
- * Additionally, it handles special cases like enrollment tokens and updates sessionStorage accordingly.
+ * This function calculates when the session timeout warning should display and logs the time in the console.
+ * It also validates if the provided `dynamicValue` is a number and formats the warning time accordingly.
  *
- * @returns {Promise<{ [key: string]: string }>} A promise resolving to an object where the keys are sessionStorage keys and the values are renewed access tokens.
+ * @param {string | number} dynamicValue - The value used to calculate the session timeout warning time.
+ * @param {string} initialOrUpdate - Indicates whether the log is for the initial session timeout or an update.
+ *
+ * @returns {void}
  *
  * Key Steps:
- * 1. Checks if the access token is about to expire within 5 minutes.
- * 2. Renews the access token using Okta's Token Manager.
- * 3. Iterates through `sessionStorage` keys that start with `accessToken_` to identify other tokens.
- * 4. Renews and updates tokens if necessary, including handling enrollment tokens.
- *
- * @throws {Error} If token renewal fails for any reason.
+ * 1. Converts `dynamicValue` to a number and checks if it's valid.
+ * 2. Calculates the session timeout warning time.
+ * 3. Logs the formatted warning time in the `America/New_York` timezone.
+ * 4. Logs a message if the `dynamicValue` is not a valid number.
  *
  * @example
- * // Usage in a component or service
- * this.authService.renewAllTokens().then(tokens => {
- *   console.log('Renewed tokens:', tokens);
- * }).catch(error => {
- *   console.error('Token renewal failed:', error);
- * });
+ * logWarningPopupTime(300000, 'Initial'); // Logs: "Initial session timeout warning to display at: [calculated time]"
  */
+
+
+/**
+ * Initializes the session timeout widget for the application.
+ *
+ * This function sets up the session timeout mechanism based on the user's configuration and environment.
+ * It displays a warning dialog before the session times out and redirects the user to the appropriate URL if they remain inactive.
+ *
+ * @param {FeatureConfigService} [featureConfig] - Optional service providing configuration values for session timeout settings.
+ *
+ * @returns {void}
+ *
+ * Key Steps:
+ * 1. Checks if the session timeout widget (`stwInitialized`) is already initialized.
+ * 2. Retrieves configuration values such as backend reset timer URL, logout URL, and timeout warning times.
+ * 3. Initializes the session timeout widget with the provided or default values.
+ * 4. Logs the initial warning popup time using `logWarningPopupTime`.
+ *
+ * @example
+ * // Initialize with a configuration service
+ * initializeSessionTimeout(featureConfigService);
+ *
+ * @see {@link https://prod-cicm.uspto.gov/gitlab/myuspto/SessionTimeoutWidget SessionTimeoutWidget Documentation}
+ */
+
+
+
