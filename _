@@ -1,31 +1,29 @@
-
 /**
- * Intercepts HTTP requests and modifies them based on user authentication tokens.
+ * Intercepts HTTP requests and handles specific error scenarios such as rate limiting (429) and unauthorized access (401).
  *
- * This method ensures valid authentication tokens are attached to outgoing HTTP requests.
- * It handles scenarios where:
- * - Tokens are missing or expired.
- * - Additional checks are required for international users or specific endpoints.
- * - Tokens need to be retrieved or refreshed from various sources.
+ * This method ensures proper error handling for outgoing HTTP requests by:
+ * - Displaying notifications for rate-limiting errors.
+ * - Redirecting to a 401 error page for unauthorized access errors.
+ * - Logging or processing error details for other error types.
  *
  * @param {HttpRequest<any>} request - The outgoing HTTP request.
  * @param {HttpHandler} next - The next handler in the HTTP pipeline.
- * @returns {Observable<HttpEvent<any>>} - The observable that handles the request and emits its events.
+ * @returns {Observable<HttpEvent<any>>} - The observable that handles the request and emits its events or errors.
  *
- * Key Steps:
- * 1. Validates and decodes the user token from `sessionStorage` or `pcchannel`.
- * 2. Checks for token expiration and blocks requests if expired, except for specific whitelisted URLs.
- * 3. Adds Okta ID and access tokens to headers for authenticated requests.
- * 4. Handles special cases, such as enrollment endpoints, to set additional headers.
- * 5. Ensures the `Authorization` header is set appropriately for various scenarios.
+ * Error Handling:
+ * 1. **429 (Too Many Requests)**: Displays a toast notification to inform the user that the search limit has been reached.
+ *    - Notification is removed automatically after 20 seconds.
+ * 2. **401 (Unauthorized)**: Logs the error and redirects the user to the `/401` error page.
+ * 3. **Blob Error Processing**: If the error body is a `Blob`, its JSON content is logged.
+ * 4. **Other Errors**: Processes the error using a custom `processErrorJson` method.
  *
  * @example
  * // Usage in Angular's HTTP_INTERCEPTORS
  * {
  *   provide: HTTP_INTERCEPTORS,
- *   useClass: AuthInterceptor,
+ *   useClass: ErrorHandlingInterceptor,
  *   multi: true
  * }
  *
- * @throws {Error} If the user token is expired and the request is not to a whitelisted URL.
+ * @throws {Error} Re-throws the error after processing it.
  */
