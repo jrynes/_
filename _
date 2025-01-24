@@ -1,26 +1,70 @@
-
 /**
- * Checks the current session's validity by making an API call to the appropriate endpoint based on the environment.
+ * Checks the current route to determine if it is a login callback or a logout route.
  *
- * This function determines the correct session API URL based on the application's environment (e.g., DEV, PROD, etc.).
- * It then makes an HTTP GET request to retrieve session information and handles any potential errors gracefully.
+ * This method identifies special routes such as `/login/callback` or `/timeout-widget-logout`
+ * and skips additional initialization for these routes. For other routes, it performs initialization
+ * by verifying the Okta authentication state and completing user-related setup.
  *
- * @returns {Observable<any>} An observable containing the session details or an error.
+ * @returns {Promise<void>} A promise that resolves after the appropriate checks and initialization.
  *
  * Key Steps:
- * 1. Determines the environment (e.g., DEV, FQT, SIT, PVT, PROD).
- * 2. Selects the appropriate session API endpoint URL based on the environment.
- * 3. Sends an HTTP GET request to fetch session information.
- * 4. Handles errors using RxJS's `catchError` operator, propagating the error if one occurs.
+ * 1. Resolves immediately for `/login/callback` and `/timeout-widget-logout` routes.
+ * 2. For other routes, observes the Okta authentication state and initializes the application if needed.
  *
  * @example
- * // Example usage in a component or service
- * this.authService.checkSession.subscribe(
- *   sessionData => {
- *     console.log('Session is valid:', sessionData);
- *   },
- *   error => {
- *     console.error('Session check failed:', error);
- *   }
- * );
+ * this.checkLoginCallbackRoute().then(() => {
+ *   console.log('Route check and initialization completed.');
+ * }).catch((error) => {
+ *   console.error('Error during route check:', error);
+ * });
+ */
+
+
+
+
+/**
+ * Performs application initialization tasks for authenticated users.
+ *
+ * This method is responsible for:
+ * - Broadcasting a "NEW_TAB" message.
+ * - Checking the user's Okta session and silently re-authenticating if needed.
+ * - Initializing user-specific data, feature configurations, and session timeout settings.
+ *
+ * @param {Observer<void>} observer - The observer used to notify when the initialization is complete.
+ *
+ * @returns {void}
+ *
+ * Key Steps:
+ * 1. Verifies the user's authentication state and retrieves necessary tokens.
+ * 2. Initializes session storage and broadcasts a message for new tab handling.
+ * 3. Completes feature configuration and session timeout initialization.
+ * 4. Signals completion via the provided observer.
+ *
+ * @example
+ * const observer: Observer<void> = { next: () => {}, complete: () => {}, error: (err) => console.error(err) };
+ * this.performInitialization(observer);
+ */
+
+
+/**
+ * Checks the user's authentication status with Okta and performs silent re-authentication if necessary.
+ *
+ * This method verifies if the user is currently authenticated. If not, it attempts silent authentication
+ * to retrieve tokens without requiring user interaction. The retrieved tokens are then stored and used
+ * for further operations.
+ *
+ * @returns {Promise<void>} A promise that resolves after the authentication check is complete.
+ *
+ * Key Steps:
+ * 1. Uses `isAuthenticated` to check the user's current authentication state.
+ * 2. If not authenticated, uses Okta's `getWithoutPrompt` method to attempt silent authentication.
+ * 3. Stores the retrieved tokens (if any) in the Okta Token Manager.
+ * 4. Handles errors gracefully if silent authentication fails.
+ *
+ * @example
+ * this.checkOktaSession().then(() => {
+ *   console.log('Session check completed successfully.');
+ * }).catch((error) => {
+ *   console.error('Error during session check:', error);
+ * });
  */
