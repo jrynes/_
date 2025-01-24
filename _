@@ -1,75 +1,32 @@
-
 /**
- * Refreshes the Okta access token for the given scopes and stores the result in sessionStorage.
- * 
- * @param {string[]} requiredScopes - The list of scopes required for the access token.
- * @param {string} storageKey - A unique key used to store the access token in sessionStorage.
- * @returns {Promise<string | null>} - The new access token if successful, or null if no token is returned.
- * @throws Will throw an error if token retrieval fails.
- * 
- * @description
- * This method interacts with Okta's token API to refresh the access token without prompting the user.
- * It logs detailed information to assist with troubleshooting, including Okta configurations and session details.
+ * Determines whether a route can be activated by waiting for the application to finish initializing.
+ *
+ * This method subscribes to an observable from the `initializationService` that emits when the app is initialized.
+ * If initialization is complete, it allows navigation. If initialization fails or times out, it redirects to `/401`.
+ *
+ * @returns {Observable<boolean>} An observable that emits `true` if the route can be activated, or `false` otherwise.
+ *
+ * Key Steps:
+ * 1. Waits for the application to emit an "initialized" event.
+ * 2. Ensures initialization completes naturally without polling or retries.
+ * 3. Redirects to `/401` if initialization is not completed after a timeout.
+ *
+ * @example
+ * canActivate(): Observable<boolean> {
+ *   return this.canActivate();
+ * }
  */
-async refreshTokenForScopes(requiredScopes: string[], storageKey: string): Promise<string | null> {
-  try {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Attempting to refresh token with scopes: ${requiredScopes.join(', ')}`);
-    console.log(`[${timestamp}] Using storageKey: ${storageKey}`);
-
-    // Call Okta's token.getWithoutPrompt API
-    const res: any = await this.oktaAuth.token.getWithoutPrompt({
-      responseType: ['id_token', 'token'],
-      scopes: requiredScopes,
-    });
-
-    console.log(`[${timestamp}] Token refresh response:`, res);
-
-    // Check if the accessToken and scopes are available
-    if (res?.tokens?.accessToken?.scopes) {
-      const newScopes = res.tokens.accessToken.scopes.join(', ');
-      const existingScopes = sessionStorage.getItem('oktaScopes') || '';
-      const updatedScopes = existingScopes ? `${existingScopes},${newScopes}` : newScopes;
-
-      sessionStorage.setItem('oktaScopes', updatedScopes);
-      sessionStorage.setItem(`accessToken_${storageKey}`, res.tokens.accessToken.accessToken);
-
-      // Handle specific scope logic (e.g., enrollment)
-      if (requiredScopes.some(scope => scope.includes('enrollment'))) {
-        sessionStorage.setItem('accessToken_ENROLLMENT', res.tokens.accessToken.accessToken);
-      }
-
-      console.log(`[${timestamp}] Updated scopes in sessionStorage: ${updatedScopes}`);
-      return res.tokens.accessToken.accessToken;
-    }
-
-    console.warn(`[${timestamp}] AccessToken or scopes not found in the response.`);
-    return null;
-
-  } catch (error) {
-    const timestamp = new Date().toISOString();
-
-    // Log error details for Okta team troubleshooting
-    console.error(`[${timestamp}] Token retrieval or validation failed:`, {
-      message: error?.message || 'Unknown error',
-      stack: error?.stack,
-      requiredScopes,
-      storageKey,
-      oktaConfig: {
-        issuer: this.oktaAuth.options.issuer,
-        clientId: this.oktaAuth.options.clientId,
-        redirectUri: this.oktaAuth.options.redirectUri,
-      },
-    });
-
-    // Provide actionable advice for common errors
-    if (error?.message?.includes('Policy evaluation failed')) {
-      console.error(`[${timestamp}] Suggestion: Check the Okta policy configurations to ensure the required scopes (${requiredScopes.join(', ')}) are allowed.`);
-    } else {
-      console.error(`[${timestamp}] Suggestion: Review the Okta application settings and ensure all required configurations are correct.`);
-    }
-
-    // Rethrow the error for upstream handling
-    throw error;
-  }
+canActivate(): Observable<boolean> {
+  return this.initializationService.isInitialized().pipe(
+    // Wait until initialization emits `true`.
+    filter((isInitialized) => isInitialized === true),
+    take(1), // Complete the observable after the first `true` emission.
+    map(() => true), // Allow navigation if initialization is complete.
+    timeout(10000), // Optional: Add a timeout to prevent indefinite waiting.
+    catchError((error) => {
+      console.error('Initialization failed or timed out:', error);
+      this.router.navigate(['/401']); // Redirect to unauthorized page.
+      return of(false); // Prevent navigation.
+    })
+  );
 }
