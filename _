@@ -1,63 +1,14 @@
 /**
- * Host listener for the `window:focus` event to handle actions when the browser tab gains focus.
+ * A service that listens for route changes and performs actions based on navigation events.
  *
- * This method is triggered whenever the browser window or tab is brought into focus.
- * It checks the session state, validates whether the session timeout modal is visible,
- * and ensures the user is still authenticated with Okta.
- *
- * @param {any} event - The focus event triggered by the browser.
- *
- * @returns {void}
- *
- * Key Steps:
- * 1. Determines if the session timeout modal is visible.
- * 2. Checks if the app is running outside the local DEV environment.
- * 3. If conditions are met, validates the user's session state with Okta.
- * 4. Redirects or logs out the user based on their session state.
- *
- * @example
- * // Automatically handled by Angular's @HostListener
- * <app-root></app-root>
+ * This service monitors route changes using Angular's `Router` and triggers specific actions when the home page
+ * (`'/'` or `'/index.html'`) is navigated to. If the application is not initialized, it triggers re-initialization
+ * through the `AppLoadService`.
  */
 
-/**
- * Checks if the session timeout modal is currently visible in the DOM.
- *
- * This method looks for a specific modal element (`#stmTimerContent`) and determines
- * if it is currently visible to the user.
- *
- * @returns {boolean} `true` if the modal is visible, `false` otherwise.
- *
- * Key Steps:
- * 1. Searches for the modal element in the DOM using its selector.
- * 2. Checks if the modal's `offsetParent` is non-null, indicating visibility.
- * 3. Logs the modal's visibility status to the console.
- *
- * @example
- * if (this.isSessionTimeoutModalVisible()) {
- *   console.log('Modal is visible');
- * }
- */
-
-/**
- * Handles browser tab focus and validates the user's session state.
- *
- * This method ensures that if the app is running in a non-local environment and the session
- * timeout modal is not visible, the user's session with Okta is checked. Depending on the
- * session state, it either redirects the user, logs them out, or performs no action.
- *
- * @returns {void}
- *
- * Key Steps:
- * 1. Verifies the app is running outside the local DEV environment.
- * 2. Checks if the session timeout modal is visible and if the user is anonymous.
- * 3. If conditions are met, checks the active session with Okta.
- * 4. Handles the session state:
- *    - If active: Redirects anonymous users with an active session to the home page.
- *    - If inactive: Logs out the user and redirects to the home page.
- * 5. Handles errors related to session validation.
- *
- * @example
- * this.handleTabFocus();
- */
-
+  /**
+   * Initializes the service and subscribes to Angular router events.
+   *
+   * @param {AppLoadService} appLoadService - The service responsible for handling app initialization and re-initialization.
+   * @param {Router} router - Angular's Router instance used to listen for route changes.
+   */
