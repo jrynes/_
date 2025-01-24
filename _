@@ -1,70 +1,63 @@
 /**
- * Checks the current route to determine if it is a login callback or a logout route.
+ * Host listener for the `window:focus` event to handle actions when the browser tab gains focus.
  *
- * This method identifies special routes such as `/login/callback` or `/timeout-widget-logout`
- * and skips additional initialization for these routes. For other routes, it performs initialization
- * by verifying the Okta authentication state and completing user-related setup.
+ * This method is triggered whenever the browser window or tab is brought into focus.
+ * It checks the session state, validates whether the session timeout modal is visible,
+ * and ensures the user is still authenticated with Okta.
  *
- * @returns {Promise<void>} A promise that resolves after the appropriate checks and initialization.
- *
- * Key Steps:
- * 1. Resolves immediately for `/login/callback` and `/timeout-widget-logout` routes.
- * 2. For other routes, observes the Okta authentication state and initializes the application if needed.
- *
- * @example
- * this.checkLoginCallbackRoute().then(() => {
- *   console.log('Route check and initialization completed.');
- * }).catch((error) => {
- *   console.error('Error during route check:', error);
- * });
- */
-
-
-
-
-/**
- * Performs application initialization tasks for authenticated users.
- *
- * This method is responsible for:
- * - Broadcasting a "NEW_TAB" message.
- * - Checking the user's Okta session and silently re-authenticating if needed.
- * - Initializing user-specific data, feature configurations, and session timeout settings.
- *
- * @param {Observer<void>} observer - The observer used to notify when the initialization is complete.
+ * @param {any} event - The focus event triggered by the browser.
  *
  * @returns {void}
  *
  * Key Steps:
- * 1. Verifies the user's authentication state and retrieves necessary tokens.
- * 2. Initializes session storage and broadcasts a message for new tab handling.
- * 3. Completes feature configuration and session timeout initialization.
- * 4. Signals completion via the provided observer.
+ * 1. Determines if the session timeout modal is visible.
+ * 2. Checks if the app is running outside the local DEV environment.
+ * 3. If conditions are met, validates the user's session state with Okta.
+ * 4. Redirects or logs out the user based on their session state.
  *
  * @example
- * const observer: Observer<void> = { next: () => {}, complete: () => {}, error: (err) => console.error(err) };
- * this.performInitialization(observer);
+ * // Automatically handled by Angular's @HostListener
+ * <app-root></app-root>
  */
-
 
 /**
- * Checks the user's authentication status with Okta and performs silent re-authentication if necessary.
+ * Checks if the session timeout modal is currently visible in the DOM.
  *
- * This method verifies if the user is currently authenticated. If not, it attempts silent authentication
- * to retrieve tokens without requiring user interaction. The retrieved tokens are then stored and used
- * for further operations.
+ * This method looks for a specific modal element (`#stmTimerContent`) and determines
+ * if it is currently visible to the user.
  *
- * @returns {Promise<void>} A promise that resolves after the authentication check is complete.
+ * @returns {boolean} `true` if the modal is visible, `false` otherwise.
  *
  * Key Steps:
- * 1. Uses `isAuthenticated` to check the user's current authentication state.
- * 2. If not authenticated, uses Okta's `getWithoutPrompt` method to attempt silent authentication.
- * 3. Stores the retrieved tokens (if any) in the Okta Token Manager.
- * 4. Handles errors gracefully if silent authentication fails.
+ * 1. Searches for the modal element in the DOM using its selector.
+ * 2. Checks if the modal's `offsetParent` is non-null, indicating visibility.
+ * 3. Logs the modal's visibility status to the console.
  *
  * @example
- * this.checkOktaSession().then(() => {
- *   console.log('Session check completed successfully.');
- * }).catch((error) => {
- *   console.error('Error during session check:', error);
- * });
+ * if (this.isSessionTimeoutModalVisible()) {
+ *   console.log('Modal is visible');
+ * }
  */
+
+/**
+ * Handles browser tab focus and validates the user's session state.
+ *
+ * This method ensures that if the app is running in a non-local environment and the session
+ * timeout modal is not visible, the user's session with Okta is checked. Depending on the
+ * session state, it either redirects the user, logs them out, or performs no action.
+ *
+ * @returns {void}
+ *
+ * Key Steps:
+ * 1. Verifies the app is running outside the local DEV environment.
+ * 2. Checks if the session timeout modal is visible and if the user is anonymous.
+ * 3. If conditions are met, checks the active session with Okta.
+ * 4. Handles the session state:
+ *    - If active: Redirects anonymous users with an active session to the home page.
+ *    - If inactive: Logs out the user and redirects to the home page.
+ * 5. Handles errors related to session validation.
+ *
+ * @example
+ * this.handleTabFocus();
+ */
+
