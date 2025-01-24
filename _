@@ -1,1 +1,26 @@
 
+/**
+ * Checks the current session's validity by making an API call to the appropriate endpoint based on the environment.
+ *
+ * This function determines the correct session API URL based on the application's environment (e.g., DEV, PROD, etc.).
+ * It then makes an HTTP GET request to retrieve session information and handles any potential errors gracefully.
+ *
+ * @returns {Observable<any>} An observable containing the session details or an error.
+ *
+ * Key Steps:
+ * 1. Determines the environment (e.g., DEV, FQT, SIT, PVT, PROD).
+ * 2. Selects the appropriate session API endpoint URL based on the environment.
+ * 3. Sends an HTTP GET request to fetch session information.
+ * 4. Handles errors using RxJS's `catchError` operator, propagating the error if one occurs.
+ *
+ * @example
+ * // Example usage in a component or service
+ * this.authService.checkSession.subscribe(
+ *   sessionData => {
+ *     console.log('Session is valid:', sessionData);
+ *   },
+ *   error => {
+ *     console.error('Session check failed:', error);
+ *   }
+ * );
+ */
