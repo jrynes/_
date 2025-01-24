@@ -1,1 +1,25 @@
-
+/**
+ * Renews all tokens stored in sessionStorage if they are nearing expiration.
+ *
+ * This method checks the expiration of access tokens and ID tokens managed by Okta's Token Manager.
+ * If any tokens are about to expire (within 5 minutes), it renews them using Okta's API.
+ * Additionally, it handles special cases like enrollment tokens and updates sessionStorage accordingly.
+ *
+ * @returns {Promise<{ [key: string]: string }>} A promise resolving to an object where the keys are sessionStorage keys and the values are renewed access tokens.
+ *
+ * Key Steps:
+ * 1. Checks if the access token is about to expire within 5 minutes.
+ * 2. Renews the access token using Okta's Token Manager.
+ * 3. Iterates through `sessionStorage` keys that start with `accessToken_` to identify other tokens.
+ * 4. Renews and updates tokens if necessary, including handling enrollment tokens.
+ *
+ * @throws {Error} If token renewal fails for any reason.
+ *
+ * @example
+ * // Usage in a component or service
+ * this.authService.renewAllTokens().then(tokens => {
+ *   console.log('Renewed tokens:', tokens);
+ * }).catch(error => {
+ *   console.error('Token renewal failed:', error);
+ * });
+ */
