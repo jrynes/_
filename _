@@ -1,1 +1,55 @@
+/**
+ * Checks the authentication status of the current user by sending a request
+ * to the authentication endpoint and processes the response accordingly.
+ *
+ * - If the user is anonymous, their session token is stored.
+ * - If the user is a registered user, a global session is checked.
+ * - If the user is unproofed, relevant details are broadcasted via a Subject.
+ *
+ * Gracefully handles 401 responses by logging out the user and navigating them to the login page.
+ *
+ * @returns {Observable<void>} Observable that completes after processing the authentication check.
+ */
+authCheck(): Observable<void> {
+  return this.http
+    .get('/pc-manage/public/auth/check', { observe: 'response' })
+    .pipe(
+      map((response) => {
+        if (response && response.headers) {
+          const token = response.headers.get(this.xAuthToken) || '';
+          const parsedToken = this.jwtHelper.decodeToken(token);
 
+          if (parsedToken) {
+            // Handle anonymous users
+            if (parsedToken.roles.includes("ROLE_ANONYMOUS")) {
+              sessionStorage.setItem(this.xAuthToken, token);
+              this.setToken(token, String(Date.now()), false);
+            }
+            
+            // Handle registered users
+            if (this.isRegisteredUser(parsedToken)) {
+              this.globalSessionCheck(); // Check for active OKTA session
+            } else {
+              // Handle unproofed users
+              this.unProofedUserDetails.next({
+                isUnProofedUser: true,
+                firstName: parsedToken?.firstname || '',
+                lastName: parsedToken?.lastname || '',
+              });
+            }
+          }
+        }
+      }),
+      catchError((error) => {
+        if (error.status === 401) {
+          // Handle unauthorized response
+          console.warn('Unauthorized access. Redirecting to login.');
+          this.logout(); // Ensure this.logout() is implemented elsewhere in your service
+          this.router.navigate(['/login']);
+        } else {
+          console.error('Error during authentication check:', error);
+        }
+        return EMPTY; // Emit an empty observable to gracefully handle the error
+      })
+    );
+}
